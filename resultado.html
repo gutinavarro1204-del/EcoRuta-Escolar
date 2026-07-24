@@ -1,50 +1,1104 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Resultado - EcoRuta Escolar</title>
+
     <link rel="stylesheet" href="style.css">
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <style>
+        .estado-analisis {
+            max-width: 700px;
+            margin: 15px auto;
+            padding: 14px 18px;
+            background: #ecfdf5;
+            border: 2px solid #86efac;
+            border-radius: 16px;
+            color: #166534;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .informacion-ruta {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .dato-ruta {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 15px;
+            padding: 15px;
+            text-align: left;
+        }
+
+        .dato-ruta span {
+            display: block;
+            font-size: 14px;
+            color: #166534;
+            margin-bottom: 6px;
+        }
+
+        .dato-ruta b {
+            font-size: 17px;
+            color: #14532d;
+        }
+
+        .ecoscore-destacado {
+            grid-column: 1 / -1;
+            text-align: center;
+            background: linear-gradient(
+                135deg,
+                #dcfce7,
+                #bbf7d0
+            );
+            border: 2px solid #4ade80;
+        }
+
+        .ecoscore-numero {
+            display: block;
+            margin: 8px 0;
+            font-size: 34px;
+            color: #166534;
+            font-weight: bold;
+        }
+
+        .barra-ecoscore {
+            width: 100%;
+            height: 18px;
+            overflow: hidden;
+            background: #d1d5db;
+            border-radius: 999px;
+            margin-top: 10px;
+        }
+
+        .progreso-ecoscore {
+            width: 0;
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(
+                90deg,
+                #22c55e,
+                #15803d
+            );
+            transition: width 1.5s ease;
+        }
+
+        .comparacion-rutas {
+            margin: 24px 0;
+        }
+
+        .comparacion-rutas h3 {
+            color: #166534;
+            margin-bottom: 14px;
+        }
+
+        .rutas-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .opcion-ruta {
+            border-radius: 16px;
+            padding: 18px;
+            text-align: left;
+        }
+
+        .ruta-rapida {
+            background: #fff7ed;
+            border: 2px solid #fdba74;
+        }
+
+        .ruta-saludable {
+            background: #ecfdf5;
+            border: 2px solid #4ade80;
+        }
+
+        .opcion-ruta h4 {
+            margin-top: 0;
+            font-size: 19px;
+        }
+
+        .opcion-ruta p {
+            margin: 8px 0;
+        }
+
+        .recomendacion {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 6px 10px;
+            background: #15803d;
+            color: white;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .riesgos-ruta {
+            margin: 24px 0;
+        }
+
+        .riesgos-ruta h3 {
+            color: #166534;
+        }
+
+        .riesgos-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .riesgo {
+            padding: 13px;
+            background: #f8fafc;
+            border: 1px solid #d1d5db;
+            border-radius: 14px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .riesgo strong {
+            display: block;
+            margin-top: 5px;
+            color: #14532d;
+        }
+
+        .boton-explicacion {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 18px;
+            padding: 14px;
+            border: none;
+            border-radius: 14px;
+            background: #15803d;
+            color: white;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .boton-explicacion:hover {
+            background: #166534;
+            transform: translateY(-2px);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-contenido {
+            width: 100%;
+            max-width: 540px;
+            background: white;
+            border-radius: 22px;
+            padding: 28px;
+            text-align: left;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+            animation: aparecer 0.3s ease;
+        }
+
+        .modal-contenido h2 {
+            color: #166534;
+            text-align: center;
+        }
+
+        .modal-contenido p,
+        .modal-contenido li {
+            line-height: 1.7;
+        }
+
+        .cerrar-modal {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            background: #15803d;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .marcador-personalizado {
+            background: transparent;
+            border: none;
+        }
+
+        .icono-mapa {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 3px solid #16a34a;
+            border-radius: 50%;
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes aparecer {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @media (max-width: 700px) {
+            .informacion-ruta,
+            .rutas-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .ecoscore-destacado {
+                grid-column: auto;
+            }
+
+            .riesgos-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
 </head>
+
 <body>
 
 <header>
     <h1>🌳 EcoRuta Escolar</h1>
-    <p>Resultado de la búsqueda</p>
+    <p>Tu camino saludable hacia el colegio</p>
 </header>
 
 <section class="hero">
 
-    <h2>✅ Ruta encontrada</h2>
+    <h2 id="tituloResultado">
+        🔎 Calculando EcoRuta...
+    </h2>
+
+    <div
+        class="estado-analisis"
+        id="estadoAnalisis"
+    >
+        📍 Preparando el mapa...
+    </div>
 
     <div class="card">
-        <h3>🌿 Ruta Verde</h3>
 
-        <p>⭐ Índice EcoRuta: <b>96/100</b></p>
+        <div class="informacion-ruta">
 
-        <p>🌬 Calidad del aire: Excelente</p>
+            <div class="dato-ruta">
+                <span>📍 Punto de salida</span>
+                <b id="textoInicio">Ubicando...</b>
+            </div>
 
-        <p>🔊 Ruido: Bajo</p>
+            <div class="dato-ruta">
+                <span>🏫 Destino</span>
+                <b id="textoDestino">Buscando colegio...</b>
+            </div>
 
-        <p>🌳 Áreas verdes: Muy altas</p>
+            <div class="dato-ruta">
+                <span>🛣️ Distancia</span>
+                <b id="textoDistancia">Calculando...</b>
+            </div>
 
-        <p>⏱ Tiempo estimado: 18 minutos</p>
+            <div class="dato-ruta">
+                <span>🚶 Tiempo caminando</span>
+                <b id="textoTiempo">Calculando...</b>
+            </div>
 
-        <br>
+            <div class="dato-ruta ecoscore-destacado">
+                <span>⭐ Índice EcoRuta</span>
 
-        <button>
-            🗺️ Ver Ruta en el Mapa
+                <span
+                    class="ecoscore-numero"
+                    id="textoEcoScore"
+                >
+                    0/100
+                </span>
+
+                <b id="textoNivelEco">
+                    Analizando...
+                </b>
+
+                <div class="barra-ecoscore">
+                    <div
+                        class="progreso-ecoscore"
+                        id="progresoEcoScore"
+                    ></div>
+                </div>
+            </div>
+
+            <div class="dato-ruta">
+                <span>🌬 Calidad del aire</span>
+                <b id="textoAire">Analizando...</b>
+            </div>
+
+            <div class="dato-ruta">
+                <span>🔊 Nivel de ruido</span>
+                <b id="textoRuido">Analizando...</b>
+            </div>
+
+            <div class="dato-ruta">
+                <span>🌳 Áreas verdes</span>
+                <b id="textoAreasVerdes">Analizando...</b>
+            </div>
+
+            <div class="dato-ruta">
+                <span>🛡️ Nivel recomendado</span>
+                <b id="textoNivel">Analizando...</b>
+            </div>
+
+        </div>
+
+        <div class="comparacion-rutas">
+
+            <h3>📊 Comparación de rutas</h3>
+
+            <div class="rutas-grid">
+
+                <div class="opcion-ruta ruta-rapida">
+                    <h4>⚡ Ruta rápida</h4>
+                    <p>
+                        Distancia:
+                        <b id="distanciaRapida">Calculando...</b>
+                    </p>
+                    <p>
+                        EcoScore:
+                        <b id="scoreRapido">72/100</b>
+                    </p>
+                    <p>
+                        Mayor tráfico y ruido.
+                    </p>
+                </div>
+
+                <div class="opcion-ruta ruta-saludable">
+                    <h4>🌳 Ruta saludable</h4>
+                    <p>
+                        Distancia:
+                        <b id="distanciaSaludable">Calculando...</b>
+                    </p>
+                    <p>
+                        EcoScore:
+                        <b id="scoreSaludable">Calculando...</b>
+                    </p>
+                    <p>
+                        Mejor ambiente y menor exposición al ruido.
+                    </p>
+
+                    <span class="recomendacion">
+                        ✅ Recomendada
+                    </span>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="riesgos-ruta">
+
+            <h3>🚦 Elementos identificados</h3>
+
+            <div class="riesgos-grid">
+
+                <div class="riesgo">
+                    🚸
+                    <strong>Cruce escolar</strong>
+                </div>
+
+                <div class="riesgo">
+                    🚦
+                    <strong>Semáforos</strong>
+                </div>
+
+                <div class="riesgo">
+                    🌳
+                    <strong>Zonas verdes</strong>
+                </div>
+
+                <div class="riesgo">
+                    🏥
+                    <strong>Servicios cercanos</strong>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div id="map"></div>
+
+        <button
+            class="boton-explicacion"
+            id="abrirExplicacion"
+        >
+            🌱 ¿Por qué esta ruta es saludable?
         </button>
+
+        <br><br>
+
+        <a href="buscar.html">
+            <button>🔍 Buscar otra ruta</button>
+        </a>
+
+        <br><br>
+
+        <a href="index.html">
+            <button>🏠 Volver al inicio</button>
+        </a>
 
     </div>
 
-    <br>
-
-    <a href="index.html">
-        <button>🏠 Volver al inicio</button>
-    </a>
-
 </section>
+
+<footer>
+    Proyecto Eureka 2026 - EcoRuta Escolar 🌳
+</footer>
+
+<div
+    class="modal"
+    id="modalExplicacion"
+>
+    <div class="modal-contenido">
+
+        <h2>🌱 ¿Por qué recomendamos esta ruta?</h2>
+
+        <p id="textoExplicacion">
+            EcoRuta está analizando la información.
+        </p>
+
+        <ul>
+            <li>🌳 Considera la presencia de zonas verdes.</li>
+            <li>🔊 Busca reducir la exposición al ruido.</li>
+            <li>🌬 Valora una mejor calidad ambiental.</li>
+            <li>🚶 Promueve el desplazamiento caminando.</li>
+        </ul>
+
+        <p>
+            <b>Nota:</b>
+            Los indicadores ambientales forman parte de una
+            estimación educativa para este prototipo escolar.
+        </p>
+
+        <button
+            class="cerrar-modal"
+            id="cerrarExplicacion"
+        >
+            Entendido
+        </button>
+
+    </div>
+</div>
+
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+<script>
+document.addEventListener(
+    "DOMContentLoaded",
+    async function () {
+
+        const textoInicio =
+            document.getElementById("textoInicio");
+
+        const textoDestino =
+            document.getElementById("textoDestino");
+
+        const textoDistancia =
+            document.getElementById("textoDistancia");
+
+        const textoTiempo =
+            document.getElementById("textoTiempo");
+
+        const textoEcoScore =
+            document.getElementById("textoEcoScore");
+
+        const textoNivelEco =
+            document.getElementById("textoNivelEco");
+
+        const progresoEcoScore =
+            document.getElementById("progresoEcoScore");
+
+        const textoAire =
+            document.getElementById("textoAire");
+
+        const textoRuido =
+            document.getElementById("textoRuido");
+
+        const textoAreasVerdes =
+            document.getElementById("textoAreasVerdes");
+
+        const textoNivel =
+            document.getElementById("textoNivel");
+
+        const tituloResultado =
+            document.getElementById("tituloResultado");
+
+        const estadoAnalisis =
+            document.getElementById("estadoAnalisis");
+
+        const textoExplicacion =
+            document.getElementById("textoExplicacion");
+
+        const distanciaRapida =
+            document.getElementById("distanciaRapida");
+
+        const distanciaSaludable =
+            document.getElementById("distanciaSaludable");
+
+        const scoreSaludable =
+            document.getElementById("scoreSaludable");
+
+        const modalExplicacion =
+            document.getElementById("modalExplicacion");
+
+        const abrirExplicacion =
+            document.getElementById("abrirExplicacion");
+
+        const cerrarExplicacion =
+            document.getElementById("cerrarExplicacion");
+
+
+        const direccionDestino =
+            localStorage.getItem("ecorutaDestino") ||
+            "Karl Weiss, Chiclayo";
+
+
+        const inicio = {
+            latitud: -6.772421,
+            longitud: -79.832396,
+            nombre: "Zona de salida del estudiante"
+        };
+
+
+        textoInicio.textContent =
+            inicio.nombre;
+
+        textoDestino.textContent =
+            direccionDestino;
+
+
+        const map = L.map("map").setView(
+            [
+                inicio.latitud,
+                inicio.longitud
+            ],
+            16
+        );
+
+
+        L.tileLayer(
+            "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                maxZoom: 19,
+                attribution: "&copy; OpenStreetMap"
+            }
+        ).addTo(map);
+
+
+        function esperar(milisegundos) {
+            return new Promise(
+                function (resolve) {
+                    setTimeout(resolve, milisegundos);
+                }
+            );
+        }
+
+
+        function crearVariantesDireccion(direccion) {
+
+            const direccionLimpia =
+                direccion.trim();
+
+            return [
+                direccionLimpia,
+                direccionLimpia + ", Chiclayo",
+                "I.E. Karl Weiss, Chiclayo",
+                "Institución Educativa Karl Weiss, Chiclayo",
+                "Colegio Karl Weiss, Chiclayo"
+            ];
+        }
+
+
+        async function consultarNominatim(consulta) {
+
+            const direccionCompleta =
+                consulta + ", Lambayeque, Perú";
+
+            const url =
+                "https://nominatim.openstreetmap.org/search" +
+                "?format=jsonv2" +
+                "&limit=5" +
+                "&addressdetails=1" +
+                "&countrycodes=pe" +
+                "&viewbox=-79.95,-6.65,-79.75,-6.90" +
+                "&bounded=1" +
+                "&q=" +
+                encodeURIComponent(direccionCompleta);
+
+            const respuesta = await fetch(url, {
+                headers: {
+                    "Accept": "application/json"
+                }
+            });
+
+            if (!respuesta.ok) {
+                throw new Error(
+                    "No se pudo consultar el buscador."
+                );
+            }
+
+            return await respuesta.json();
+        }
+
+
+        async function buscarCoordenadas(direccion) {
+
+            const variantes =
+                crearVariantesDireccion(direccion);
+
+            for (
+                let indice = 0;
+                indice < variantes.length;
+                indice++
+            ) {
+
+                const resultados =
+                    await consultarNominatim(
+                        variantes[indice]
+                    );
+
+                if (resultados.length > 0) {
+
+                    const resultado =
+                        resultados.find(
+                            function (lugar) {
+
+                                const nombre =
+                                    lugar.display_name
+                                        .toLowerCase();
+
+                                return (
+                                    nombre.includes("chiclayo") ||
+                                    nombre.includes("lambayeque")
+                                );
+                            }
+                        ) || resultados[0];
+
+                    return {
+                        latitud:
+                            Number(resultado.lat),
+
+                        longitud:
+                            Number(resultado.lon),
+
+                        nombre:
+                            resultado.display_name
+                    };
+                }
+
+                await esperar(1100);
+            }
+
+            throw new Error(
+                "No encontramos el destino indicado."
+            );
+        }
+
+
+        async function calcularRuta(
+            puntoInicio,
+            puntoDestino
+        ) {
+
+            const coordenadas =
+                puntoInicio.longitud +
+                "," +
+                puntoInicio.latitud +
+                ";" +
+                puntoDestino.longitud +
+                "," +
+                puntoDestino.latitud;
+
+            const url =
+                "https://router.project-osrm.org/" +
+                "route/v1/driving/" +
+                coordenadas +
+                "?overview=full" +
+                "&geometries=geojson";
+
+            const respuesta =
+                await fetch(url);
+
+            if (!respuesta.ok) {
+                throw new Error(
+                    "No se pudo calcular la ruta."
+                );
+            }
+
+            const datos =
+                await respuesta.json();
+
+            if (
+                datos.code !== "Ok" ||
+                !datos.routes ||
+                datos.routes.length === 0
+            ) {
+                throw new Error(
+                    "No existe una ruta disponible."
+                );
+            }
+
+            return datos.routes[0];
+        }
+
+
+        function calcularDatosEco(distanciaKm) {
+
+            let puntaje = 96;
+            let aire = "Excelente";
+            let ruido = "Bajo";
+            let areasVerdes = "Muy altas";
+            let nivel = "Excelente";
+
+            if (distanciaKm > 2) {
+                puntaje = 92;
+                aire = "Muy buena";
+                areasVerdes = "Altas";
+                nivel = "Muy recomendable";
+            }
+
+            if (distanciaKm > 4) {
+                puntaje = 87;
+                aire = "Buena";
+                ruido = "Moderado";
+                areasVerdes = "Medias";
+                nivel = "Recomendable";
+            }
+
+            if (distanciaKm > 6) {
+                puntaje = 80;
+                aire = "Aceptable";
+                ruido = "Moderado";
+                areasVerdes = "Medias";
+                nivel = "Aceptable";
+            }
+
+            return {
+                puntaje,
+                aire,
+                ruido,
+                areasVerdes,
+                nivel
+            };
+        }
+
+
+        function crearIcono(emoji) {
+
+            return L.divIcon({
+                className: "marcador-personalizado",
+
+                html:
+                    '<div class="icono-mapa">' +
+                    emoji +
+                    "</div>",
+
+                iconSize: [42, 42],
+                iconAnchor: [21, 42],
+                popupAnchor: [0, -42]
+            });
+        }
+
+
+        abrirExplicacion.addEventListener(
+            "click",
+            function () {
+                modalExplicacion.style.display =
+                    "flex";
+            }
+        );
+
+
+        cerrarExplicacion.addEventListener(
+            "click",
+            function () {
+                modalExplicacion.style.display =
+                    "none";
+            }
+        );
+
+
+        modalExplicacion.addEventListener(
+            "click",
+            function (evento) {
+
+                if (
+                    evento.target ===
+                    modalExplicacion
+                ) {
+                    modalExplicacion.style.display =
+                        "none";
+                }
+            }
+        );
+
+
+        try {
+
+            estadoAnalisis.textContent =
+                "📍 Ubicando el punto de salida...";
+
+            await esperar(600);
+
+            estadoAnalisis.textContent =
+                "🏫 Buscando el colegio...";
+
+            const destino =
+                await buscarCoordenadas(
+                    direccionDestino
+                );
+
+            await esperar(500);
+
+            estadoAnalisis.textContent =
+                "🌳 Analizando el entorno...";
+
+            await esperar(700);
+
+            estadoAnalisis.textContent =
+                "🚶 Calculando la ruta saludable...";
+
+            const ruta =
+                await calcularRuta(
+                    inicio,
+                    destino
+                );
+
+
+            L.marker(
+                [
+                    inicio.latitud,
+                    inicio.longitud
+                ],
+                {
+                    icon: crearIcono("🏠")
+                }
+            )
+                .addTo(map)
+                .bindPopup(
+                    "<b>🏠 Punto de salida</b><br>" +
+                    inicio.nombre
+                );
+
+
+            L.marker(
+                [
+                    destino.latitud,
+                    destino.longitud
+                ],
+                {
+                    icon: crearIcono("🏫")
+                }
+            )
+                .addTo(map)
+                .bindPopup(
+                    "<b>🏫 Colegio Karl Weiss</b><br>" +
+                    destino.nombre
+                );
+
+
+            const rutaVerde =
+                L.geoJSON(
+                    ruta.geometry,
+                    {
+                        style: {
+                            color: "#16a34a",
+                            weight: 7,
+                            opacity: 0.9
+                        }
+                    }
+                ).addTo(map);
+
+
+            map.fitBounds(
+                rutaVerde.getBounds(),
+                {
+                    padding: [40, 40]
+                }
+            );
+
+
+            const distanciaKm =
+                ruta.distance / 1000;
+
+            const distanciaMostrada =
+                distanciaKm.toFixed(2);
+
+            const tiempoCaminando =
+                Math.max(
+                    1,
+                    Math.round(
+                        distanciaKm * 12
+                    )
+                );
+
+            const datosEco =
+                calcularDatosEco(
+                    distanciaKm
+                );
+
+            const distanciaRapidaCalculada =
+                Math.max(
+                    0.1,
+                    distanciaKm - 0.15
+                ).toFixed(2);
+
+
+            textoInicio.textContent =
+                inicio.nombre;
+
+            textoDestino.textContent =
+                direccionDestino;
+
+            textoDistancia.textContent =
+                distanciaMostrada + " km";
+
+            textoTiempo.textContent =
+                tiempoCaminando + " minutos";
+
+            textoEcoScore.textContent =
+                datosEco.puntaje + "/100";
+
+            textoNivelEco.textContent =
+                datosEco.nivel;
+
+            textoAire.textContent =
+                datosEco.aire;
+
+            textoRuido.textContent =
+                datosEco.ruido;
+
+            textoAreasVerdes.textContent =
+                datosEco.areasVerdes;
+
+            textoNivel.textContent =
+                datosEco.nivel;
+
+            distanciaRapida.textContent =
+                distanciaRapidaCalculada + " km";
+
+            distanciaSaludable.textContent =
+                distanciaMostrada + " km";
+
+            scoreSaludable.textContent =
+                datosEco.puntaje + "/100";
+
+
+            textoExplicacion.textContent =
+                "Esta ruta obtuvo un EcoScore de " +
+                datosEco.puntaje +
+                "/100. Tiene una distancia aproximada de " +
+                distanciaMostrada +
+                " km y un tiempo caminando de " +
+                tiempoCaminando +
+                " minutos. La ruta saludable puede ser un poco " +
+                "más larga que la ruta rápida, pero busca reducir " +
+                "la exposición al ruido y mejorar el contacto con " +
+                "un entorno más agradable.";
+
+
+            tituloResultado.textContent =
+                "✅ Ruta saludable encontrada";
+
+            estadoAnalisis.textContent =
+                "✅ Análisis completado correctamente";
+
+
+            setTimeout(
+                function () {
+                    progresoEcoScore.style.width =
+                        datosEco.puntaje + "%";
+                },
+                250
+            );
+
+
+            setTimeout(
+                function () {
+                    map.invalidateSize();
+                },
+                300
+            );
+
+        } catch (error) {
+
+            console.error(error);
+
+            tituloResultado.textContent =
+                "⚠️ No se pudo calcular la ruta";
+
+            estadoAnalisis.textContent =
+                "❌ Ocurrió un problema durante el análisis";
+
+            textoDistancia.textContent =
+                "No disponible";
+
+            textoTiempo.textContent =
+                "No disponible";
+
+            textoEcoScore.textContent =
+                "No disponible";
+
+            textoNivelEco.textContent =
+                "No disponible";
+
+            textoAire.textContent =
+                "No disponible";
+
+            textoRuido.textContent =
+                "No disponible";
+
+            textoAreasVerdes.textContent =
+                "No disponible";
+
+            textoNivel.textContent =
+                "No disponible";
+
+            alert(
+                error.message +
+                "\n\nPrueba escribiendo:" +
+                "\nKarl Weiss, Chiclayo"
+            );
+        }
+
+    }
+);
+</script>
 
 </body>
 </html>
